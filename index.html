@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Karte ziehen</title>
+
+<style>
+body{
+font-family: Arial;
+text-align:center;
+margin-top:100px;
+background:#f4f4f4;
+}
+
+button{
+font-size:25px;
+padding:20px;
+}
+
+#karte{
+margin-top:40px;
+font-size:30px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Brettspiel Karten Generator</h1>
+
+<button onclick="karteZiehen()">Karte ziehen</button>
+
+<div id="karte"></div>
+
+<script>
+
+const karten = [
+{text:"Du findest 10 Gold", chance:30},
+{text:"Du verlierst einen Zug", chance:20},
+{text:"Bewege dich 3 Felder vor", chance:25},
+{text:"Du verlierst 5 Gold", chance:15},
+{text:"Bonuskarte!", chance:10}
+];
+
+function karteZiehen(){
+
+let rand = Math.random()*100;
+let sum = 0;
+
+for(let i=0;i<karten.length;i++){
+sum += karten[i].chance;
+
+if(rand <= sum){
+document.getElementById("karte").innerText = karten[i].text;
+break;
+}
+}
+
+}
+
+</script>
+
+</body>
+</html>
