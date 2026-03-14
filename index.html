@@ -21,12 +21,8 @@ body{
 }
 
 button{
-  font-size:5vw;
-  padding:2vh 4vw;
-  margin-bottom:4vh;
-  cursor:pointer;
-  max-width:300px;
-  min-width:150px;
+  font-size:clamp(18px,2vw,26px);
+  padding:12px 20px;
 }
 
 button:disabled{
@@ -43,35 +39,42 @@ button:disabled{
 
 .karte{
 
-  width:80vw;
-  max-width:400px;
-  height:calc(80vw * 1.3);
-  max-height:520px;
+width:min(80vw,420px);
+height:min(calc(80vw * 1.3),550px);
 
-  background:white;
-  color:black;
-  border-radius:15px;
-  border:4px solid #222;
-  padding:2vw;
+background:white;
+color:black;
 
-  box-shadow:0px 10px 25px rgba(0,0,0,0.5);
+border-radius:15px;
+border:4px solid #222;
 
-  transition:transform 0.8s;
+padding:20px;
+
+box-shadow:0px 10px 25px rgba(0,0,0,0.5);
+
+transition:transform 0.8s;
 
 }
 
 .kartentitel{
-  font-size:5vw;
-  font-weight:bold;
-  margin-bottom:10px;
-  text-align:center;
+
+font-size:clamp(24px,3vw,34px);
+font-weight:700;
+text-align:center;
+
+margin-top:5px;
+margin-bottom:12px;
+
+width:100%;
+
 }
 
 .aktion{
-  margin:6px 0;
-  font-size:4vw;
+  margin:8px 0;
+  font-size:clamp(18px,2.2vw,26px);
+  font-weight:bold;
   border-bottom:1px solid #ddd;
-  padding-bottom:4px;
+  padding-bottom:6px;
 }
 
 .extra{
@@ -106,6 +109,7 @@ font-weight:bold;
 <script>
 
 let rotation=0;
+let aktuellerSpieler = 0; 
 
 function rand(min,max){
 return Math.floor(Math.random()*(max-min+1))+min;
@@ -202,34 +206,38 @@ function generiereAktionen(anzahl){
 
 let liste=[...aktionen];
 let result=[];
-let waffeBenutzt=false;
+
+/* 10% Chance pro Karte */
+let waffeIndex = null;
+
+if(Math.random()<0.10){
+  waffeIndex = Math.floor(Math.random()*anzahl);
+}
 
 for(let i=0;i<anzahl;i++){
 
-if(!waffeBenutzt && Math.random()<0.10){
+  if(i===waffeIndex){
 
-let w=gewichteteZiehung(waffen);
+    let w = gewichteteZiehung(waffen);
 
-result.push({
-text:"Waffe: "+w.text,
-color:"red"
-});
+    result.push({
+      text:"Waffe: "+w.text,
+      color:"red"
+    });
 
-waffeBenutzt=true;
-continue;
+    continue;
+  }
 
-}
+  let a = gewichteteZiehung(liste);
 
-let a=gewichteteZiehung(liste);
+  let text = typeof a.text==="function" ? a.text() : a.text;
 
-let text= typeof a.text==="function" ? a.text() : a.text;
+  result.push({
+    text:text,
+    color:a.color
+  });
 
-result.push({
-text:text,
-color:a.color
-});
-
-liste=liste.filter(x=>x!==a);
+  liste = liste.filter(x=>x!==a);
 
 }
 
@@ -295,9 +303,7 @@ let aktionenListe=generiereAktionen(anzahl);
 
 let sonder=zieheSonderaktion();
 
-let html="<div class='kartentitel'>Ereigniskarte</div>";
-
-html+="<div class='kartentitel'>Aktionen</div>";
+let html="<div class='kartentitel'>Spieler "+aktuellerSpieler+"</div>";
 
 aktionenListe.forEach(a=>{
 html+="<div class='aktion' style='color:"+a.color+"'>• "+a.text+"</div>";
@@ -315,6 +321,11 @@ karte.innerHTML=html;
 
 },400);
 
+aktuellerSpieler++;
+
+if(aktuellerSpieler>4){
+  aktuellerSpieler=1;
+}
 }
 
 </script>
