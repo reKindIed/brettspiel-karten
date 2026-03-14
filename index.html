@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Brettspiel Karten Generator</title>
 
-<!-- Wichtig für Mobile -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -15,20 +14,18 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:flex-start;
   min-height:100vh;
   margin:0;
   padding:20px;
   color:white;
 }
 
-/* Button responsive */
 button{
-  font-size:5vw; /* relativ zur Breite */
+  font-size:5vw;
   padding:2vh 4vw;
   margin-bottom:4vh;
   cursor:pointer;
-  max-width:300px; /* optional */
+  max-width:300px;
   min-width:150px;
 }
 
@@ -44,40 +41,53 @@ button:disabled{
   width:100%;
 }
 
-/* Karte responsive */
 .karte{
-  width:80vw;      /* 80% der Bildschirmbreite */
-  max-width:400px; /* für Desktop */
-  height:calc(80vw * 1.3); /* Seitenverhältnis 1:1.3 */
+
+  width:80vw;
+  max-width:400px;
+  height:calc(80vw * 1.3);
   max-height:520px;
-  
+
   background:white;
   color:black;
   border-radius:15px;
   border:4px solid #222;
   padding:2vw;
-  box-shadow:0px 10px 25px rgba(0,0,0,0.5);
-  transition:transform 0.8s;
-  margin:auto;
-}
 
-.karte.flip{
-  transform:rotateY(360deg);
+  box-shadow:0px 10px 25px rgba(0,0,0,0.5);
+
+  transition:transform 0.8s;
+
 }
 
 .kartentitel{
   font-size:5vw;
   font-weight:bold;
-  margin-bottom:2vh;
+  margin-bottom:10px;
   text-align:center;
 }
 
 .aktion{
-  margin:1vh 0;
+  margin:6px 0;
   font-size:4vw;
   border-bottom:1px solid #ddd;
-  padding-bottom:0.5vh;
-  width:100%;
+  padding-bottom:4px;
+}
+
+.extra{
+
+border:3px solid gold;
+border-radius:10px;
+
+box-shadow:
+0 0 10px gold,
+0 0 20px gold;
+
+padding:8px;
+margin-top:10px;
+
+font-weight:bold;
+
 }
 
 </style>
@@ -88,78 +98,223 @@ button:disabled{
 <button id="ziehenBtn" onclick="karteZiehen()">Karte ziehen</button>
 
 <div class="kartenbereich">
-  <div id="karte" class="karte">
-    <div class="kartentitel">Neue Karte</div>
-  </div>
+<div id="karte" class="karte">
+<div class="kartentitel">Neue Karte</div>
+</div>
 </div>
 
 <script>
 
-const aktionen = [
-  "+3 Gold",
-  "-2 Gold",
-  "Bewege dich 2 Felder vor",
-  "Bewege dich 1 Feld zurück",
-  "Tausche Position mit einem Spieler",
-  "Ziehe eine Bonuskarte",
-  "Verliere einen Zug",
-  "Alle Spieler erhalten 1 Gold",
-  "Stiehl 2 Gold von einem Spieler",
-  "Bewege dich zum nächsten Ereignisfeld"
-];
+let rotation=0;
 
-let rotation = 0;
+function rand(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
 
 function zufallsAktionenAnzahl(){
-  let rand = Math.random()*100;
-  if(rand < 40) return 1;
-  if(rand < 70) return 2;
-  if(rand < 85) return 3;
-  if(rand < 95) return 4;
-  return 5;
+
+let r=Math.random()*100;
+
+if(r<45) return 1;
+if(r<75) return 2;
+if(r<95) return 3;
+if(r<98) return 4;
+
+return 5;
+
+}
+
+function gewichteteZiehung(liste){
+
+let total=0;
+
+liste.forEach(a=>total+=a.weight);
+
+let r=Math.random()*total;
+
+for(let a of liste){
+
+if(r<a.weight) return a;
+
+r-=a.weight;
+
+}
+
+}
+
+const aktionen=[
+
+{ text:()=> "Laufe "+rand(1,6)+" Felder", weight:70, color:"blue" },
+
+{ text:()=> "Laufe "+rand(10,20)+" Felder", weight:5, color:"blue" },
+
+{ text:"Springe 5 Felder", weight:33, color:"blue" },
+
+{ text:"Teleporter", weight:0.2, color:"blue" },
+
+{ text:"Laufe auswählbar 1-6 Felder", weight:10, color:"blue" },
+
+{ text:"Laufe bis zum nächsten Spawn", weight:2, color:"blue" },
+
+{ text:"Belebe eine Spielfigur vor dir", weight:0.4, color:"green" },
+
+{ text:"Belebe einen Gegner vor dir", weight:0.1, color:"green" }
+
+];
+
+const waffen=[
+
+{ text:"Sniper – über das gesamte Spielfeld", weight:10 },
+
+{ text:"Shotgun – schieße 3 Felder in eine Richtung", weight:20 },
+
+{ text:"Revolver – schieße 5 Felder weit", weight:30 },
+
+{ text:"Messer – töte Spieler im Radius 1", weight:40 },
+
+{ text:"Granate – werfe 8 Felder weit (Explosion Radius 5)", weight:5 }
+
+];
+
+const sonderAktionen=[
+
+{ text:"Hook – ziehe eine Spielfigur an dich ran", weight:0.5 },
+
+{ text:"Schließe zu einem Spieler auf", weight:5 },
+
+{ text:"Laufe 2 Felder extra", weight:20 },
+
+{ text:"Laufe 5 Felder extra", weight:33 },
+
+{ text:"Laufe 10 Felder extra", weight:2 },
+
+{ text:"Laufe 20 Felder extra", weight:0.5 },
+
+{ text:"Laufe 4 Felder extra", weight:9 },
+
+{ text:"Laufe 1 oder 2 Felder extra", weight:30 },
+
+{ text:"Lösche alle Spieler auf dem Spielfeld", weight:0.01 }
+
+];
+
+function generiereAktionen(anzahl){
+
+let liste=[...aktionen];
+let result=[];
+let waffeBenutzt=false;
+
+for(let i=0;i<anzahl;i++){
+
+if(!waffeBenutzt && Math.random()<0.10){
+
+let w=gewichteteZiehung(waffen);
+
+result.push({
+text:"Waffe: "+w.text,
+color:"red"
+});
+
+waffeBenutzt=true;
+continue;
+
+}
+
+let a=gewichteteZiehung(liste);
+
+let text= typeof a.text==="function" ? a.text() : a.text;
+
+result.push({
+text:text,
+color:a.color
+});
+
+liste=liste.filter(x=>x!==a);
+
+}
+
+return result;
+
+}
+
+function zieheSonderaktion(){
+
+if(Math.random()<0.05){
+
+let s=gewichteteZiehung(sonderAktionen);
+
+return s.text;
+
+}
+
+return null;
+
 }
 
 function karteZiehen(){
-  let btn = document.getElementById("ziehenBtn");
-  btn.disabled = true;
 
-  let countdown = 2;
-  btn.innerText = "Warte "+countdown+"s";
+let btn=document.getElementById("ziehenBtn");
 
-  let interval = setInterval(()=>{
-    countdown--;
-    if(countdown>0){
-      btn.innerText="Warte "+countdown+"s";
-    } else{
-      btn.innerText="Karte ziehen";
-      btn.disabled=false;
-      clearInterval(interval);
-    }
-  },1000);
+btn.disabled=true;
 
-  /* Karte rotieren */
-  rotation += 360;
-  let karte = document.getElementById("karte");
-  karte.style.transform = "rotateY("+rotation+"deg)";
+let countdown=2;
 
-  /* Neue Karte generieren */
-  setTimeout(()=>{
-    let anzahl = zufallsAktionenAnzahl();
-    let kopie = [...aktionen];
-    let gezogeneAktionen = [];
+btn.innerText="Warte "+countdown+"s";
 
-    for(let i=0;i<anzahl;i++){
-      let index = Math.floor(Math.random()*kopie.length);
-      gezogeneAktionen.push(kopie[index]);
-      kopie.splice(index,1);
-    }
+let interval=setInterval(()=>{
 
-    let html="<div class='kartentitel'>Ereigniskarte</div>";
-    gezogeneAktionen.forEach(a=>{
-      html+="<div class='aktion'>• "+a+"</div>";
-    });
-    karte.innerHTML = html;
-  },400);
+countdown--;
+
+if(countdown>0){
+
+btn.innerText="Warte "+countdown+"s";
+
+}else{
+
+btn.innerText="Karte ziehen";
+
+btn.disabled=false;
+
+clearInterval(interval);
+
+}
+
+},1000);
+
+rotation+=360;
+
+let karte=document.getElementById("karte");
+
+karte.style.transform="rotateY("+rotation+"deg)";
+
+setTimeout(()=>{
+
+let anzahl=zufallsAktionenAnzahl();
+
+let aktionenListe=generiereAktionen(anzahl);
+
+let sonder=zieheSonderaktion();
+
+let html="<div class='kartentitel'>Ereigniskarte</div>";
+
+html+="<div class='kartentitel'>Aktionen</div>";
+
+aktionenListe.forEach(a=>{
+html+="<div class='aktion' style='color:"+a.color+"'>• "+a.text+"</div>";
+});
+
+if(sonder){
+
+html+="<div class='kartentitel' style='margin-top:10px;'>Extra</div>";
+
+html+="<div class='aktion extra'>⭐ "+sonder+"</div>";
+
+}
+
+karte.innerHTML=html;
+
+},400);
+
 }
 
 </script>
